@@ -1,0 +1,1 @@
+document.write('<iframe width="200" height="50" id="iframe4" src="framecontents.html?4"></iframe>');

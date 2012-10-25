@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<style>
+	.none {display:none;"}
+	</style>
+</head>
+<body>
+	<h1>IMG Test</h1>
+	<h2>img 1</h2>
+	<div id="img1_placeholder">
+		<p>inline img tag</p>
+		<img id="img1"src="smiley.png?1" />
+	</div>
+	<h2>img 2</h2>
+	<div id="img2_placeholder">
+		<p>src of img tag altered with js</p>
+		<img id="img2" src="about:blank" />
+	</div>
+	<h2>img 3</h2>
+	<div id="img3_placeholder">
+		<p>src of img tag added with js</p>
+		<img  id="img3"/>
+	</div>
+	<h2>img 4</h2>
+	<div id="img4_placeholder">
+		<p>img created with document write</p>
+		<script src="imgwrite.js"></script>
+	</div>
+	<h2>img 5</h2>
+	<div id="img5_placeholder">
+		<p>img node created with js</p>
+		
+	</div>
+	<h2>img 6</h2>
+	<div id="img6_placeholder">
+		<p>img node created with js src created after node</p>
+		
+	</div>
+	<h2>img 7</h2>
+	<div id="img7_placeholder" >
+		<p>img node made visible by changing css style thru JS</p>
+		<img  class="none" id="img7"src="smiley.png?7" />
+	</div>
+	<h2>img 8</h2>
+	<div id="img8_placeholder" >
+		<p>img node made invisible by changing css style thru JS should still show up in resourcetree</p>
+		<img  id="img8"src="smiley.png?8" />
+	</div>
+	<h2>img 9</h2>
+	<div id="img9_placeholder">
+		<p>img node created with external js</p>
+		
+	</div>
+	<h2>img 10</h2>
+	<div id="img10_placeholder">
+		<p>img node created with external js functioncall</p>
+		
+	</div>
+	<h2>img 11</h2>
+	<div id="img11_placeholder">
+		<p>img node created with external js functioncall after onload</p>
+		
+	</div>
+	<h2>img 12</h2>
+	<div id="img12_placeholder">
+		<p>img node created with external js functioncall after onload extra function to test stacktrace</p>
+		
+	</div>
+	<h2>img 13</h2>
+	<div id="img13_placeholder">
+		<p>img node created with js functioncall after document.ready</p>
+		
+	</div>
+	<script src="ready.js"></script>
+	<script src="img.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,12 @@
+div {
+	width:32px;
+	height:32px;
+}
+
+#backgroundimage1 {
+	background: url(smiley.png?1);
+}
+
+.backgroundimage5 {
+	background: url(smiley.png?5);
+}
