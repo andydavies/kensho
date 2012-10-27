@@ -37,7 +37,7 @@ In yellow the tests are shown where the initiator url is correct but the linenum
 
 ## How does it work?
 
-The iniatorTests.js script:
+The initiatorTests.js script:
 
 - starts a webserver to serve the test html files and other resources from the tests directory.
 - it tests if a Chrome instance is running with a remote-debugging port of 9222. If not it will start a Chrome instance with remote debugging on port 9222.
