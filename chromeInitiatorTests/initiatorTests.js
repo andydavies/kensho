@@ -419,24 +419,24 @@ var remoteDebuggeroptions = {
 var req = http.request(remoteDebuggeroptions, debuggerJsonHandler);
 req.on('error', function(e) {  
 
+    var chromeexecutableConfig = {
+        win32: 'chrome',
+        win64: 'chrome',
+        linux: 'google-chrome'
+    }
 	// remote debugger not running attempt to start remote debugger
-	console.log('remote debugger not running attempting to start chrome --remote-debugging-port=9222');
+    var chromeExecutable = 'chrome'; // assume this as default.
+    var platform = require('os').platform();
+    if(chromeexecutableConfig[platform]){
+        chromeExecutable = chromeexecutableConfig[platform];
+    }
+	console.log('remote debugger not running attempting to start '+chromeExecutable+' --remote-debugging-port=9222');
     // chrome must be opened with a regular html page. the debugger via webseockets and non html pages like extension pages and other chrome internal pages don't mix well.
-	child = spawn('chrome',['--remote-debugging-port=9222', 'http://google.com'], function (error, stdout, stderr) {
-
-    	if (error !== null) {
-      		console.error('Remote debugger could not be started. Make sure the chrome executable is on your path.',error);
-      		cleanup();
-    	} else {
-    		createdChromeInstance = true;
-            //give process time to start
-    		setTimeout(function(){http.request(remoteDebuggeroptions, debuggerJsonHandler).end();},2000);
-    	}
-	});
-	//console.log('attempt to read debuger json again');
-	http.request(remoteDebuggeroptions, debuggerJsonHandler).end();
-   
- })
+	child = spawn(chromeExecutable,['--remote-debugging-port=9222', 'http://google.com']);
+	// give chrome process time to start
+    createdChromeInstance = true;
+    setTimeout(function(){http.request(remoteDebuggeroptions, debuggerJsonHandler).end();},2000);
+ });
 req.end();
 
 
@@ -517,7 +517,9 @@ function runTest(){
 	// enable networkl events
 	sendCommand('Network.enable',{}, function(){
 		sendCommand('Page.enable',{}, function(){
-			sendCommand('Page.reload',{ignoreCache: true}, function(){/*console.log('page navigated');*/});
+            sendCommand('Timeline.start',{}, function(){
+                sendCommand('Page.reload',{ignoreCache: true}, function(){/*console.log('page navigated');*/});
+            });
 		});
 	});
 
@@ -576,6 +578,9 @@ function isDeepEqualwithoutLineNumbers(actual, expected){
 
 function reportTest(){
 
+    //gather other data through Page.searchinresources to search for @import, backgroundimages
+    // search in resources is a last resort
+
 
     // fix url's from relative in expected to absolute
     for (var key in expectedInitiators) {
@@ -607,7 +612,6 @@ function reportTest(){
             }
         }
     }
-
     for (var key in expectedInitiators) {
         if(expectedInitiators[key]){
             if(expectedInitiators[key].expected && expectedInitiators[key].message){
@@ -642,9 +646,16 @@ function reportTest(){
 	// cleanup debugger settings
 	sendCommand('Network.disable',{}, function(){
 		sendCommand('Page.disable',{}, function(){
-			runNextTest();
+            sendCommand('Timeline.stop',{}, function(){
+                runNextTest();
+            });
 		});
 	});
+}
+
+function improveInitiator(originalInitiator, initiatorForResourceURL){
+
+    return originalInitiator;
 }
 
 // the event handler that handles all events from the websocket.
@@ -662,8 +673,16 @@ function devtoolsEventhandler(m){
 	    	} else if(data.method){
                 // when the loadevent fires wait one second for onload events to complete and then create the report.
 	    		if( data.method ===  'Page.loadEventFired'){
+
+                    /*sendCommand('CSS.getAllStyleSheets',{},function(x){
+                        for (var i = 0; i < x.headers.length; i++) {
+                           sendCommand('CSS.getStyleSheet',{styleSheetId:x.headers[i].styleSheetId},function(css){ 
+                                console.log(JSON.stringify(css));
+                           });
+                       }
+                        console.log('allstylesheets', JSON.stringify(x));
+                    });*/
 	    			setTimeout(reportTest,1000);
-	    			
                 // this event contains the initiator data. when there's a testcase for it store the initiator data.
 	    		} else if(data.method === 'Network.requestWillBeSent'){
 	    			//console.log('Network.requestWillBeSent',data.params.request.url,data.params.initiator);
@@ -674,10 +693,10 @@ function devtoolsEventhandler(m){
 	    				
 	    				retrievedInitiators[name] = data.params.initiator;
 	    			}
-	    		} else if(data.method === 'Network.loadingFinished'){
-	    			//console.log('Network.loadingFinished',data.params);
+	    		} else /*if(data.method === 'Timeline.eventRecorded'){
+	    			console.log('Timeline.eventRecorded'.red,JSON.stringify(data.params));
 
-	    		} else if(data.method === 'Profiler.resetProfiles'){
+	    		}  else */ if(data.method === 'Profiler.resetProfiles'){
                     // websocket connection invalidated by chrome debugger restart whole test
                     console.log('Websocket was reset by browser, restarting test.');
                     if(chromeDevtools){
@@ -727,14 +746,12 @@ function sendCommand(command, params, callback){
 
 
 function cleanup(){
-	console.log('cleaning up');
     // keeping a reference to page in the webserver seems to keep the webserver open
     sendCommand('Page.navigate',{url: 'about:blank'});
 	if(createdChromeInstance){
 		// kill the child
 		child.kill();
 	}
-	//console.log('child process killed',child);
 	if(webserver){
 		//stop the webserver
 		webserver.close(function(){console.log('webserver stopped');});
