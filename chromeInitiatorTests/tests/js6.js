@@ -1,0 +1,1 @@
+document.getElementById('js6loaded').innerHTML = 'loaded!';

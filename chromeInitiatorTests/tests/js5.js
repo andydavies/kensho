@@ -1,0 +1,1 @@
+window.top.document.getElementById('js5loaded').innerHTML = 'loaded!';

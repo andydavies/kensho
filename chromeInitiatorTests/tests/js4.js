@@ -1,0 +1,1 @@
+document.getElementById('js4loaded').innerHTML = 'loaded!';
