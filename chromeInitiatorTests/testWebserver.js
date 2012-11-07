@@ -341,41 +341,49 @@ ext_to_type = {
 // from shutting down gracefully when the browser remains opened FIXME doesn't seem to do the trick though
  var webserver;
 
+/* overloading exports.start doesn't seem to work, alternative?
  exports.start = function(){
+    exports.start(webserverport);
+};*/
+
+exports.start = function(port){
+    if(!port){
+        port = webserverport;
+    }
     webserver = http.createServer(function(request, response) {
 
-      	var uri = url.parse(request.url).pathname,
-         	filename = './tests'+ uri;
+        var uri = url.parse(request.url).pathname,
+            filename = './tests'+ uri;
 
         fs.exists(filename, function (exists) {
-        	if(exists){
-        		fs.readFile(filename, "binary", function(err, file) {
-    		      if(err) {        
-    		        response.writeHead(500, {"Content-Type": "text/plain","Connection": "close"});
-    		        response.write(err + "\n");
-    		        response.end();
-    		        return;
-    		      }
-    		      var mime = "text/plain"; // default
-    		      if(ext_to_type[path.extname(filename)] ) {
-    		      	mime = ext_to_type[path.extname(filename)];
-    		      }
+            if(exists){
+                fs.readFile(filename, "binary", function(err, file) {
+                  if(err) {        
+                    response.writeHead(500, {"Content-Type": "text/plain","Connection": "close"});
+                    response.write(err + "\n");
+                    response.end();
+                    return;
+                  }
+                  var mime = "text/plain"; // default
+                  if(ext_to_type[path.extname(filename)] ) {
+                    mime = ext_to_type[path.extname(filename)];
+                  }
 
-    		      response.writeHead(200, {"Content-Type": mime,"Connection": "close"});
-    		      response.write(file, "binary");
-    		      response.end();
-    		    });
-        	} else {
-        	  response.writeHead(404, {"Content-Type": "text/plain","Connection": "close"});
-    	      response.write("404 Not Found\n");
-    	      response.end();
-    	      return;
-        	}
+                  response.writeHead(200, {"Content-Type": mime,"Connection": "close"});
+                  response.write(file, "binary");
+                  response.end();
+                });
+            } else {
+              response.writeHead(404, {"Content-Type": "text/plain","Connection": "close"});
+              response.write("404 Not Found\n");
+              response.end();
+              return;
+            }
         });
-    }).listen(webserverport);
+    }).listen(port);
 
-    console.log("Static file webserver running at\n  => http://localhost:" + webserverport );
-};
+    console.log("Static file webserver running at\n  => http://localhost:" + port );
+}
 
 exports.stop = function(){
     if(webserver){
